@@ -85,7 +85,7 @@
 }
 
 - (void)controller:(NSFetchedResultsController *)controller
-  didChangeSection:(id)anObject
+  didChangeObject:(id)anObject
            atIndex:(NSIndexPath *)indexPath
      forChangeType:(NSFetchedResultsChangeType)type
       newIndexPath:(NSIndexPath *)newIndexPath {
