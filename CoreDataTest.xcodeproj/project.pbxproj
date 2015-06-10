@@ -16,7 +16,6 @@
 		4C018D091B289150009B0042 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4C018D071B289150009B0042 /* LaunchScreen.xib */; };
 		4C018D151B289150009B0042 /* CoreDataTestTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C018D141B289150009B0042 /* CoreDataTestTests.m */; };
 		4C018D201B289192009B0042 /* Item.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C018D1F1B289192009B0042 /* Item.m */; };
-		4C018D231B28B013009B0042 /* ItemDetails.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C018D221B28B013009B0042 /* ItemDetails.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,8 +45,6 @@
 		4C018D141B289150009B0042 /* CoreDataTestTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CoreDataTestTests.m; sourceTree = "<group>"; };
 		4C018D1E1B289192009B0042 /* Item.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Item.h; sourceTree = "<group>"; };
 		4C018D1F1B289192009B0042 /* Item.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Item.m; sourceTree = "<group>"; };
-		4C018D211B28B013009B0042 /* ItemDetails.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ItemDetails.h; sourceTree = "<group>"; };
-		4C018D221B28B013009B0042 /* ItemDetails.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ItemDetails.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,8 +97,6 @@
 				4C018D071B289150009B0042 /* LaunchScreen.xib */,
 				4C018CFC1B289150009B0042 /* CoreDataTest.xcdatamodeld */,
 				4C018CF51B289150009B0042 /* Supporting Files */,
-				4C018D211B28B013009B0042 /* ItemDetails.h */,
-				4C018D221B28B013009B0042 /* ItemDetails.m */,
 			);
 			path = CoreDataTest;
 			sourceTree = "<group>";
@@ -235,7 +230,6 @@
 				4C018D201B289192009B0042 /* Item.m in Sources */,
 				4C018CFB1B289150009B0042 /* AppDelegate.m in Sources */,
 				4C018CFE1B289150009B0042 /* CoreDataTest.xcdatamodeld in Sources */,
-				4C018D231B28B013009B0042 /* ItemDetails.m in Sources */,
 				4C018D011B289150009B0042 /* ViewController.m in Sources */,
 				4C018CF81B289150009B0042 /* main.m in Sources */,
 			);
@@ -432,6 +426,7 @@
 				4C018D1A1B289150009B0042 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		4C018D1B1B289150009B0042 /* Build configuration list for PBXNativeTarget "CoreDataTestTests" */ = {
 			isa = XCConfigurationList;
@@ -440,6 +435,7 @@
 				4C018D1D1B289150009B0042 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
