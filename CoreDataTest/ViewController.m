@@ -10,7 +10,7 @@
 #import "Item.h"
 #import "ViewController.h"
 
-@interface ViewController () <NSFetchedResultsControllerDelegate>
+@interface ViewController () <NSFetchedResultsControllerDelegate, UITableViewDataSource>
 
 @property (strong, nonatomic) IBOutlet UITextField *itemTextField;
 @property (strong, nonatomic) IBOutlet UILabel *itemStatus;
@@ -88,13 +88,6 @@
 
 #pragma mark - NSFetchedResultsControllerDelegate
 
-- (void)controllerWillChangeContent:(NSFetchedResultsController *)controller {
-    //Lets the tableview know we're potentially doing a bunch of updates.
-    [self.tableView beginUpdates];
-}
-
-
-
 
 - (void)controller:(NSFetchedResultsController *)controller
 didChangeObject:(id)anObject
@@ -154,7 +147,11 @@ newIndexPath:(NSIndexPath *)newIndexPath {
 #pragma mark - Actions
     
     - (IBAction)addItem:(id)sender {
-        if ([self.itemTextField.text isEqualToString:@""]) return;
+        
+        if(self.itemTextField == nil || [self.itemTextField.text isEqualToString:@""])
+        {
+            [self showErrorAlert];
+        }
         
         NSManagedObjectContext *context = self.managedObjectContext;
         Item *newItem = [NSEntityDescription insertNewObjectForEntityForName:@"Item" inManagedObjectContext:context];
@@ -164,6 +161,18 @@ newIndexPath:(NSIndexPath *)newIndexPath {
         [context save:&error];
         self.itemStatus.text = @"Item saved";
     }
+
+#pragma mark - Lets display an error if there is no text
+
+-(void) showErrorAlert
+{
+    UIAlertView *ErrorAlert = [[UIAlertView alloc] initWithTitle:@""
+                                                         message:@"You need to enter some text" delegate:nil
+                                               cancelButtonTitle:@"OK"
+                                               otherButtonTitles:nil, nil];
+    [ErrorAlert show];
+}
+
     
     - (IBAction)findItem:(id)sender {
         NSManagedObjectContext *context = self.managedObjectContext;
@@ -184,5 +193,15 @@ newIndexPath:(NSIndexPath *)newIndexPath {
             self.itemStatus.text = [NSString stringWithFormat: @"%lu matches found", (unsigned long)[objects count]];
         }
     }
+
+#pragma mark - Swipe to remove row
+
+-(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        NSManagedObject *managedObject = [self.fetchedResultsController objectAtIndexPath:indexPath];
+        [self.managedObjectContext deleteObject:managedObject];
+        [self.managedObjectContext save:nil];
+    }
+}
     
     @end
