@@ -6,10 +6,15 @@
 //  Copyright (c) 2015 Marty Lavender. All rights reserved.
 //
 
-#import "ViewController.h"
 #import "AppDelegate.h"
+#import "Item.h"
+#import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController () <NSFetchedResultsControllerDelegate>
+
+@property (strong, nonatomic) IBOutlet UITextField *itemTextField;
+@property (strong, nonatomic) IBOutlet UILabel *itemStatus;
+@property (strong, nonatomic) IBOutlet UITableView *tableView;
 
 @property (nonatomic, strong) NSManagedObjectContext *managedObjectContext;
 @property (nonatomic, strong) NSFetchedResultsController *fetchedResultsController;
@@ -18,63 +23,67 @@
 
 @implementation ViewController
 
-@synthesize itemnames;
-@synthesize tableView;
+#pragma mark - Properties
 
 - (NSManagedObjectContext *) managedObjectContext {
+    return [(AppDelegate *)[[UIApplication sharedApplication] delegate] managedObjectContext];    
+}
+
+-(NSFetchedResultsController *) fetchedResultsController {
+    if (_fetchedResultsController != nil) {
+        return _fetchedResultsController;
+    }
     
-    return [(AppDelegate *)[[UIApplication sharedApplication] delegate] managedObjectContext];
+    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc]init];
+    NSManagedObjectContext *context = [self managedObjectContext];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Item" inManagedObjectContext:context];
+    [fetchRequest setEntity:entity];
     
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"itemname" ascending:YES];
+    NSArray *sortDescriptors = [[NSArray alloc]initWithObjects:sortDescriptor, nil];
+    fetchRequest.sortDescriptors = sortDescriptors;
+    _fetchedResultsController = [[NSFetchedResultsController alloc]initWithFetchRequest:fetchRequest managedObjectContext:context sectionNameKeyPath:nil cacheName:nil];
+    _fetchedResultsController.delegate = self;
+    return _fetchedResultsController;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
     
     NSError *error = nil;
-    if (![[self fetchedResultsController]performFetch:&error]) {
+    if (![[self fetchedResultsController] performFetch:&error]) {
         NSLog(@"Error: %@", error);
         abort();
     }
-    
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+#pragma mark - UITableView Data Source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableview {
-    //Return number of sections
-    //return [[self.fetchedResultsController sections]count];
-    return 1;
+    return [[self.fetchedResultsController sections] count];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    //Return the number of rows in the section
     id<NSFetchedResultsSectionInfo> sectionInfo = [[self.fetchedResultsController sections] objectAtIndex:section];
     return [sectionInfo numberOfObjects];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     static NSString *CellIdentifier = @"ItemCell";
-    
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
     }
     
-    //Configure the cell
-    
-    Item *item = [self.fetchedResultsController objectAtIndexPath:indexPath];
-    cell.textLabel.text = item.itemname;
-    
+    [self configureCell:cell atIndexPath:indexPath];
     
     return cell;
-    
+}
+
+- (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
+    Item *item = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    cell.textLabel.text = item.itemname;
 }
 
 #pragma mark - NSFetchedResultsControllerDelegate
@@ -84,29 +93,49 @@
     [self.tableView beginUpdates];
 }
 
-- (void)controller:(NSFetchedResultsController *)controller
-  didChangeSection:(id)anObject
-           atIndex:(NSIndexPath *)indexPath
-     forChangeType:(NSFetchedResultsChangeType)type
-      newIndexPath:(NSIndexPath *)newIndexPath {
+- (void)controller:(NSFetchedResultsController *)controller didChangeObject:(id)anObject atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type newIndexPath:(NSIndexPath *)newIndexPath {
+    
+    UITableView *tableView = self.tableView;
     
     switch(type) {
+            
         case NSFetchedResultsChangeInsert:
-            [self.tableView insertRowsAtIndexPaths:[NSArray arrayWithObjects:newIndexPath, nil] withRowAnimation:UITableViewRowAnimationFade];
+            [tableView insertRowsAtIndexPaths:[NSArray arrayWithObject:newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
             break;
             
         case NSFetchedResultsChangeDelete:
-            [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath, nil] withRowAnimation:UITableViewRowAnimationFade];
+            [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
             break;
             
         case NSFetchedResultsChangeUpdate:
-            [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath, nil] withRowAnimation:UITableViewRowAnimationFade];
+            [self configureCell:[tableView cellForRowAtIndexPath:indexPath] atIndexPath:indexPath];
             break;
-
+            
         case NSFetchedResultsChangeMove:
-            [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath, nil] withRowAnimation:UITableViewRowAnimationFade];
+            [tableView deleteRowsAtIndexPaths:[NSArray
+                                               arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [tableView insertRowsAtIndexPaths:[NSArray
+                                               arrayWithObject:newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
             break;
+    }
+}
 
+
+- (void)controller:(NSFetchedResultsController *)controller didChangeSection:(id )sectionInfo atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type {
+    
+    switch(type) {
+            
+        case NSFetchedResultsChangeInsert:
+            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+            
+        case NSFetchedResultsChangeDelete:
+            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
+            break;
+            
+        case NSFetchedResultsChangeMove:
+        case NSFetchedResultsChangeUpdate:
+            break;
     }
 }
 
@@ -114,72 +143,39 @@
     //We're finished updating the tableview's data.
     [self.tableView endUpdates];
 }
+
+#pragma mark - Actions
         
 - (IBAction)addItem:(id)sender {
+    if ([self.itemTextField.text isEqualToString:@""]) return;
     
-    AppDelegate *appDelegate =
-    [[UIApplication sharedApplication] delegate];
-    
-    NSManagedObjectContext *context = [appDelegate managedObjectContext];
-    NSManagedObject *newItem;
-    newItem = [NSEntityDescription insertNewObjectForEntityForName:@"Item" inManagedObjectContext:context];
-    [newItem setValue: _itemTextField.text forKey:@"itemname"];
-    _itemTextField.text = @"";
-    [newItem setValue:_itemDate.date forKey:@"itemdate"];
+    NSManagedObjectContext *context = self.managedObjectContext;
+    Item *newItem = [NSEntityDescription insertNewObjectForEntityForName:@"Item" inManagedObjectContext:context];
+    newItem.itemname = self.itemTextField.text;
+    self.itemTextField.text = @"";
     NSError *error;
     [context save:&error];
-    _itemStatus.text = @"Item saved";
-    
+    self.itemStatus.text = @"Item saved";
 }
 
 - (IBAction)findItem:(id)sender {
-    
-    AppDelegate *appDelegate =
-    [[UIApplication sharedApplication] delegate];
-    
-    NSManagedObjectContext *context = [appDelegate managedObjectContext];
-    
+    NSManagedObjectContext *context = self.managedObjectContext;
     NSEntityDescription *entityDesc = [NSEntityDescription entityForName:@"Item" inManagedObjectContext:context];
-    
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
     [request setEntity:entityDesc];
-    
-    NSPredicate *pred = [NSPredicate predicateWithFormat:@"(itemname = %@)",
-     _itemTextField.text];
+    NSPredicate *pred = [NSPredicate predicateWithFormat:@"(itemname = %@)", self.itemTextField.text];
     [request setPredicate:pred];
-    NSManagedObject *matches = nil;
     
     NSError *error;
-    NSArray *objects = [context executeFetchRequest:request
-                                              error:&error];
+    NSArray *objects = [context executeFetchRequest:request error:&error];
     
     if ([objects count] == 0) {
-        _itemStatus.text = @"No matches found";
+        self.itemStatus.text = @"No matches found";
     } else {
-        matches = objects[0];
-        _itemTextField.text = [matches valueForKey:@"itemname"];
-        _itemStatus.text = [NSString stringWithFormat:
-                        @"%lu matches found", (unsigned long)[objects count]];
+        Item *match = [objects firstObject];
+        self.itemTextField.text = match.itemname;
+        self.itemStatus.text = [NSString stringWithFormat: @"%lu matches found", (unsigned long)[objects count]];
     }
-}
-
-#pragma mark - Fetched Results Controller Section
-
--(NSFetchedResultsController *) fetchedResultsController {
-    if (_fetchedResultsController != nil) {
-        return _fetchedResultsController;
-    }
-    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc]init];
-    NSManagedObjectContext *context = [self managedObjectContext];
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Item" inManagedObjectContext:context];
-    [fetchRequest setEntity:entity];
-    
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc]initWithKey:@"itemname" ascending:YES];
-    NSArray *sortDescriptors = [[NSArray alloc]initWithObjects:sortDescriptor, nil];
-    fetchRequest.sortDescriptors = sortDescriptors;
-    _fetchedResultsController = [[NSFetchedResultsController alloc]initWithFetchRequest:fetchRequest managedObjectContext:context sectionNameKeyPath:nil cacheName:nil];
-    _fetchedResultsController.delegate = self;
-    return _fetchedResultsController;
 }
 
 @end
